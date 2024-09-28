@@ -1,0 +1,28 @@
+@baseurl = http://127.0.0.1:8080/v1
+
+### Health chack
+GET {{baseurl}}/health HTTP/1.1
+
+### Login admin
+# @name login
+POST {{baseurl}}/auth/login HTTP/1.1
+
+{
+    "email": "admin@admin.com",
+    "password": "admin"
+}
+
+### Create post
+POST {{baseurl}}/posts HTTP/1.1
+Authorization: Bearer {{login.response.body.data}}
+
+{
+    "title": "hello world",
+    "content": "console.log"
+}
+
+### Get all posts
+GET {{baseurl}}/posts HTTP/1.1
+
+### Get post by id
+GET {{baseurl}}/posts/1 HTTP/1.1
