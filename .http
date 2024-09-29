@@ -3,13 +3,22 @@
 ### Health chack
 GET {{baseurl}}/health HTTP/1.1
 
+### Register User
+POST {{baseurl}}/auth/register HTTP/1.1
+
+{
+    "username": "admin",
+    "email": "admin@admin.com",
+    "password": "adminpassword"
+}
+
 ### Login admin
 # @name login
 POST {{baseurl}}/auth/login HTTP/1.1
 
 {
-    "email": "admin@admin.com",
-    "password": "admin"
+    "username": "admin",
+    "password": "adminpassword"
 }
 
 ### Create post
