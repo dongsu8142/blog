@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -17,6 +18,7 @@ func (Post) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("title").NotEmpty(),
 		field.String("content").NotEmpty(),
+		field.Int("author_id"),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -24,5 +26,11 @@ func (Post) Fields() []ent.Field {
 
 // Edges of the Post.
 func (Post) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("author", User.Type).
+			Ref("posts").
+			Field("author_id").
+			Unique().
+			Required(),
+	}
 }

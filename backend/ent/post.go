@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/dongsu8142/blog/ent/post"
+	"github.com/dongsu8142/blog/ent/user"
 )
 
 // Post is the model entity for the Post schema.
@@ -21,11 +22,36 @@ type Post struct {
 	Title string `json:"title,omitempty"`
 	// Content holds the value of the "content" field.
 	Content string `json:"content,omitempty"`
+	// AuthorID holds the value of the "author_id" field.
+	AuthorID int `json:"author_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the PostQuery when eager-loading is set.
+	Edges        PostEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// PostEdges holds the relations/edges for other nodes in the graph.
+type PostEdges struct {
+	// Author holds the value of the author edge.
+	Author *User `json:"author,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// AuthorOrErr returns the Author value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PostEdges) AuthorOrErr() (*User, error) {
+	if e.Author != nil {
+		return e.Author, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "author"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -33,7 +59,7 @@ func (*Post) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case post.FieldID:
+		case post.FieldID, post.FieldAuthorID:
 			values[i] = new(sql.NullInt64)
 		case post.FieldTitle, post.FieldContent:
 			values[i] = new(sql.NullString)
@@ -72,6 +98,12 @@ func (po *Post) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				po.Content = value.String
 			}
+		case post.FieldAuthorID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field author_id", values[i])
+			} else if value.Valid {
+				po.AuthorID = int(value.Int64)
+			}
 		case post.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -95,6 +127,11 @@ func (po *Post) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (po *Post) Value(name string) (ent.Value, error) {
 	return po.selectValues.Get(name)
+}
+
+// QueryAuthor queries the "author" edge of the Post entity.
+func (po *Post) QueryAuthor() *UserQuery {
+	return NewPostClient(po.config).QueryAuthor(po)
 }
 
 // Update returns a builder for updating this Post.
@@ -125,6 +162,9 @@ func (po *Post) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("content=")
 	builder.WriteString(po.Content)
+	builder.WriteString(", ")
+	builder.WriteString("author_id=")
+	builder.WriteString(fmt.Sprintf("%v", po.AuthorID))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(po.CreatedAt.Format(time.ANSIC))

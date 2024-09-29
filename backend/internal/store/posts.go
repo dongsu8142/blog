@@ -7,6 +7,7 @@ import (
 
 	"github.com/dongsu8142/blog/ent"
 	"github.com/dongsu8142/blog/ent/post"
+	"github.com/dongsu8142/blog/ent/user"
 )
 
 type PostStore struct {
@@ -18,6 +19,7 @@ func (s *PostStore) Create(ctx context.Context, post *ent.Post) error {
 		Create().
 		SetTitle(post.Title).
 		SetContent(post.Content).
+		SetAuthorID(post.AuthorID).
 		Exec(ctx)
 	if err != nil {
 		return err
@@ -27,16 +29,26 @@ func (s *PostStore) Create(ctx context.Context, post *ent.Post) error {
 }
 
 func (s *PostStore) GetAll(ctx context.Context) ([]*ent.Post, error) {
-	posts, err := s.db.Post.Query().Order(ent.Desc(post.FieldCreatedAt)).All(ctx)
+	user, err := s.db.Post.Query().
+		Order(ent.Desc(post.FieldCreatedAt)).
+		WithAuthor(func(q *ent.UserQuery) {
+			q.Select(user.FieldUsername)
+		}).
+		All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return posts, nil
+	return user, nil
 }
 
 func (s *PostStore) GetByID(ctx context.Context, ID int) (*ent.Post, error) {
-	post, err := s.db.Post.Get(ctx, ID)
+	post, err := s.db.Post.Query().
+		WithAuthor(func(q *ent.UserQuery) {
+			q.Select(user.FieldUsername)
+		}).
+		Where(post.ID(ID)).
+		Only(ctx)
 	if err != nil {
 		switch {
 		case ent.IsNotFound(err):

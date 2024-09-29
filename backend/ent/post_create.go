@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/dongsu8142/blog/ent/post"
+	"github.com/dongsu8142/blog/ent/user"
 )
 
 // PostCreate is the builder for creating a Post entity.
@@ -29,6 +30,12 @@ func (pc *PostCreate) SetTitle(s string) *PostCreate {
 // SetContent sets the "content" field.
 func (pc *PostCreate) SetContent(s string) *PostCreate {
 	pc.mutation.SetContent(s)
+	return pc
+}
+
+// SetAuthorID sets the "author_id" field.
+func (pc *PostCreate) SetAuthorID(i int) *PostCreate {
+	pc.mutation.SetAuthorID(i)
 	return pc
 }
 
@@ -58,6 +65,11 @@ func (pc *PostCreate) SetNillableUpdatedAt(t *time.Time) *PostCreate {
 		pc.SetUpdatedAt(*t)
 	}
 	return pc
+}
+
+// SetAuthor sets the "author" edge to the User entity.
+func (pc *PostCreate) SetAuthor(u *User) *PostCreate {
+	return pc.SetAuthorID(u.ID)
 }
 
 // Mutation returns the PostMutation object of the builder.
@@ -123,11 +135,17 @@ func (pc *PostCreate) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Post.content": %w`, err)}
 		}
 	}
+	if _, ok := pc.mutation.AuthorID(); !ok {
+		return &ValidationError{Name: "author_id", err: errors.New(`ent: missing required field "Post.author_id"`)}
+	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Post.created_at"`)}
 	}
 	if _, ok := pc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Post.updated_at"`)}
+	}
+	if len(pc.mutation.AuthorIDs()) == 0 {
+		return &ValidationError{Name: "author", err: errors.New(`ent: missing required edge "Post.author"`)}
 	}
 	return nil
 }
@@ -170,6 +188,23 @@ func (pc *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.UpdatedAt(); ok {
 		_spec.SetField(post.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := pc.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   post.AuthorTable,
+			Columns: []string{post.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.AuthorID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

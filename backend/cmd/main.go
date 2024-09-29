@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dongsu8142/blog/ent/migrate"
 	"github.com/dongsu8142/blog/internal/auth"
 	"github.com/dongsu8142/blog/internal/db"
 	"github.com/dongsu8142/blog/internal/env"
@@ -56,7 +57,11 @@ func main() {
 	logger.Info("database connection pool established")
 
 	if cfg.env == "development" {
-		if err := db.Schema.Create(context.Background()); err != nil {
+		if err := db.Schema.Create(
+			context.Background(),
+			migrate.WithDropIndex(true),
+			migrate.WithDropColumn(true),
+		); err != nil {
 			logger.Fatalf("failed creating schema resources: %v", err)
 		}
 	}

@@ -1,11 +1,13 @@
 package main
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
+	"github.com/dongsu8142/blog/ent"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -24,7 +26,7 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 		}
 
 		token := parts[1]
-		fmt.Println(token)
+
 		jwtToken, err := app.authenticator.ValidateToken(token)
 		if err != nil {
 			app.unauthorizedErrorResponse(w, r, err)
@@ -33,13 +35,30 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 
 		claims, _ := jwtToken.Claims.(jwt.MapClaims)
 
-		sub := fmt.Sprintf("%s", claims["sub"])
-
-		if sub != "admin" {
-			app.unauthorizedErrorResponse(w, r, errors.New("user is not authorized"))
+		userID, err := strconv.Atoi(fmt.Sprintf("%.f", claims["sub"]))
+		if err != nil {
+			app.unauthorizedErrorResponse(w, r, err)
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		ctx := r.Context()
+
+		user, err := app.getUser(ctx, userID)
+		if err != nil {
+			app.unauthorizedErrorResponse(w, r, err)
+			return
+		}
+
+		ctx = context.WithValue(ctx, userCtx, user)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (app *application) getUser(ctx context.Context, userID int) (*ent.User, error) {
+	user, err := app.store.Users.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
