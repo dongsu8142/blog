@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -30,7 +31,7 @@ type Post struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PostQuery when eager-loading is set.
-	Edges        PostEdges `json:"edges"`
+	Edges        PostEdges `json:"-"`
 	selectValues sql.SelectValues
 }
 
@@ -173,6 +174,18 @@ func (po *Post) String() string {
 	builder.WriteString(po.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (po *Post) MarshalJSON() ([]byte, error) {
+	type Alias Post
+	return json.Marshal(&struct {
+		*Alias
+		PostEdges
+	}{
+		Alias:     (*Alias)(po),
+		PostEdges: po.Edges,
+	})
 }
 
 // Posts is a parsable slice of Post.
