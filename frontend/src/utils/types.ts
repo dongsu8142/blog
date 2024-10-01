@@ -4,4 +4,9 @@ export interface Post {
 	content: string;
 	created_at: string;
 	updated_at: string;
+	author: PostAuthor
+}
+
+export interface PostAuthor {
+	username: string;
 }

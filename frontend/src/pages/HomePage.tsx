@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getPosts } from "../utils/api";
 import type { Post } from "../utils/types";
 import { Link } from "react-router-dom";
+import { getRelativeTimeString } from "../utils/date";
 
 const HomePage = () => {
 	const [posts, setPosts] = useState<[Post] | undefined>();
@@ -19,7 +20,10 @@ const HomePage = () => {
 						<Link className="contrast" to={`/post/${post.id}`}>
 							{post.title}
 						</Link>
-						<footer>{date.toLocaleString()}</footer>
+						<footer>
+							<span className="username">{post.author.username}</span>
+							<span className="date">{getRelativeTimeString(date)}</span>
+						</footer>
 					</article>
 				);
 			})}

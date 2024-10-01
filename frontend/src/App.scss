@@ -1,1 +1,11 @@
 @use "@picocss/pico/scss/pico";
+
+footer .username::after {
+    content: "";
+    display: inline-block;
+    height: 1.15em;
+    width: 1px;
+    background-color: #999;
+    margin: 0 5px;
+    vertical-align: middle;
+}
