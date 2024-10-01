@@ -10,5 +10,5 @@ export const getPosts = () => {
 export const getPost = (id: number) => {
 	return fetch(`${baseURL}/posts/${id}`, {
 		method: "GET",
-	}).then((res) => res.json());
+	});
 };

@@ -1,12 +1,10 @@
 import type React from "react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { setCookie } from "../utils/cookie";
 
 const LoginPage = () => {
-	const [email, setEmail] = useState("");
+	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
-
-	const navigate = useNavigate();
 
 	const handleLogin = async (event: React.FormEvent) => {
 		event.preventDefault();
@@ -16,16 +14,15 @@ const LoginPage = () => {
 			{
 				method: "POST",
 				body: JSON.stringify({
-					email,
+					username,
 					password,
 				}),
 			},
 		);
 		const result = await response.json();
 		if (response.status === 201) {
-			sessionStorage.setItem("token", result.data);
-			console.log(`로그인성공, 이메일주소:${result.data}`);
-			navigate("/"); // 로그인 성공시 홈으로 이동합니다.
+			setCookie("access_token", result.data);
+			window.location.href = "/"; // 로그인 성공시 홈으로 이동합니다.
 		}
 	};
 
@@ -33,15 +30,15 @@ const LoginPage = () => {
 		<form onSubmit={handleLogin}>
 			<fieldset>
 				<label>
-					Email
+					Username
 					<input
-						type="email"
-						name="email"
-						placeholder="Email"
-						aria-label="Email"
-						autoComplete="email"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
+						type="text"
+						name="username"
+						placeholder="Username"
+						aria-label="Username"
+						autoComplete="username"
+						value={username}
+						onChange={(e) => setUsername(e.target.value)}
 					/>
 				</label>
 				<label>

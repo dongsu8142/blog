@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import { lazy, Suspense } from "react";
+import { CookiesProvider } from "react-cookie";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const PostPage = lazy(() => import("./pages/PostPage"));
@@ -41,7 +42,9 @@ const router = createBrowserRouter([
 const App = () => {
 	return (
 		<div className="container">
-			<RouterProvider router={router} />
+			<CookiesProvider>
+				<RouterProvider router={router} />
+			</CookiesProvider>
 		</div>
 	);
 };
