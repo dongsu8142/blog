@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/dongsu8142/blog/ent/post"
+	"github.com/dongsu8142/blog/ent/tag"
 	"github.com/dongsu8142/blog/ent/user"
 )
 
@@ -36,6 +37,20 @@ func (pc *PostCreate) SetContent(s string) *PostCreate {
 // SetAuthorID sets the "author_id" field.
 func (pc *PostCreate) SetAuthorID(i int) *PostCreate {
 	pc.mutation.SetAuthorID(i)
+	return pc
+}
+
+// SetViews sets the "views" field.
+func (pc *PostCreate) SetViews(i int) *PostCreate {
+	pc.mutation.SetViews(i)
+	return pc
+}
+
+// SetNillableViews sets the "views" field if the given value is not nil.
+func (pc *PostCreate) SetNillableViews(i *int) *PostCreate {
+	if i != nil {
+		pc.SetViews(*i)
+	}
 	return pc
 }
 
@@ -70,6 +85,21 @@ func (pc *PostCreate) SetNillableUpdatedAt(t *time.Time) *PostCreate {
 // SetAuthor sets the "author" edge to the User entity.
 func (pc *PostCreate) SetAuthor(u *User) *PostCreate {
 	return pc.SetAuthorID(u.ID)
+}
+
+// AddTagIDs adds the "tags" edge to the Tag entity by IDs.
+func (pc *PostCreate) AddTagIDs(ids ...int) *PostCreate {
+	pc.mutation.AddTagIDs(ids...)
+	return pc
+}
+
+// AddTags adds the "tags" edges to the Tag entity.
+func (pc *PostCreate) AddTags(t ...*Tag) *PostCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pc.AddTagIDs(ids...)
 }
 
 // Mutation returns the PostMutation object of the builder.
@@ -107,6 +137,10 @@ func (pc *PostCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *PostCreate) defaults() {
+	if _, ok := pc.mutation.Views(); !ok {
+		v := post.DefaultViews
+		pc.mutation.SetViews(v)
+	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		v := post.DefaultCreatedAt()
 		pc.mutation.SetCreatedAt(v)
@@ -137,6 +171,9 @@ func (pc *PostCreate) check() error {
 	}
 	if _, ok := pc.mutation.AuthorID(); !ok {
 		return &ValidationError{Name: "author_id", err: errors.New(`ent: missing required field "Post.author_id"`)}
+	}
+	if _, ok := pc.mutation.Views(); !ok {
+		return &ValidationError{Name: "views", err: errors.New(`ent: missing required field "Post.views"`)}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Post.created_at"`)}
@@ -181,6 +218,10 @@ func (pc *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 		_spec.SetField(post.FieldContent, field.TypeString, value)
 		_node.Content = value
 	}
+	if value, ok := pc.mutation.Views(); ok {
+		_spec.SetField(post.FieldViews, field.TypeInt, value)
+		_node.Views = value
+	}
 	if value, ok := pc.mutation.CreatedAt(); ok {
 		_spec.SetField(post.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -204,6 +245,22 @@ func (pc *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.AuthorID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.TagsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   post.TagsTable,
+			Columns: post.TagsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -43,7 +43,7 @@ footer .username::after {
 .alert-danger {
     --background-color: #{$red-50};
     --icon: var(--pico-icon-invalid);
-    --color: #{$red-550};
+    --color: #{$red-750};
 }
 
 .alert-warning {
@@ -56,4 +56,30 @@ footer .username::after {
     --background-color: #{$green-50};
     --icon: var(--icon-valid);
     --color: #{$green-800};
+}
+
+.tag-container {
+    display: flex;
+    align-items: center;
+}
+
+.hash {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+}
+
+.hash-name {
+    margin-right: 10px;
+    font-size: 20px
+}
+
+.hash-btn {
+    border: none;
+    background: none;
+}
+
+.tag-input {
+    height: 30px;
 }

@@ -25,6 +25,8 @@ type Post struct {
 	Content string `json:"content,omitempty"`
 	// AuthorID holds the value of the "author_id" field.
 	AuthorID int `json:"author_id,omitempty"`
+	// Views holds the value of the "views" field.
+	Views int `json:"views,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -39,9 +41,11 @@ type Post struct {
 type PostEdges struct {
 	// Author holds the value of the author edge.
 	Author *User `json:"author,omitempty"`
+	// Tags holds the value of the tags edge.
+	Tags []*Tag `json:"tags,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // AuthorOrErr returns the Author value or an error if the edge
@@ -55,12 +59,21 @@ func (e PostEdges) AuthorOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "author"}
 }
 
+// TagsOrErr returns the Tags value or an error if the edge
+// was not loaded in eager-loading.
+func (e PostEdges) TagsOrErr() ([]*Tag, error) {
+	if e.loadedTypes[1] {
+		return e.Tags, nil
+	}
+	return nil, &NotLoadedError{edge: "tags"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Post) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case post.FieldID, post.FieldAuthorID:
+		case post.FieldID, post.FieldAuthorID, post.FieldViews:
 			values[i] = new(sql.NullInt64)
 		case post.FieldTitle, post.FieldContent:
 			values[i] = new(sql.NullString)
@@ -105,6 +118,12 @@ func (po *Post) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				po.AuthorID = int(value.Int64)
 			}
+		case post.FieldViews:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field views", values[i])
+			} else if value.Valid {
+				po.Views = int(value.Int64)
+			}
 		case post.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -133,6 +152,11 @@ func (po *Post) Value(name string) (ent.Value, error) {
 // QueryAuthor queries the "author" edge of the Post entity.
 func (po *Post) QueryAuthor() *UserQuery {
 	return NewPostClient(po.config).QueryAuthor(po)
+}
+
+// QueryTags queries the "tags" edge of the Post entity.
+func (po *Post) QueryTags() *TagQuery {
+	return NewPostClient(po.config).QueryTags(po)
 }
 
 // Update returns a builder for updating this Post.
@@ -166,6 +190,9 @@ func (po *Post) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("author_id=")
 	builder.WriteString(fmt.Sprintf("%v", po.AuthorID))
+	builder.WriteString(", ")
+	builder.WriteString("views=")
+	builder.WriteString(fmt.Sprintf("%v", po.Views))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(po.CreatedAt.Format(time.ANSIC))

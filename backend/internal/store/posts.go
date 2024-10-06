@@ -7,6 +7,7 @@ import (
 
 	"github.com/dongsu8142/blog/ent"
 	"github.com/dongsu8142/blog/ent/post"
+	entTag "github.com/dongsu8142/blog/ent/tag"
 	"github.com/dongsu8142/blog/ent/user"
 )
 
@@ -14,17 +15,52 @@ type PostStore struct {
 	db *ent.Client
 }
 
-func (s *PostStore) Create(ctx context.Context, post *ent.Post) error {
-	err := s.db.Post.
+func (s *PostStore) Create(ctx context.Context, tx *ent.Tx, post *ent.Post) (*ent.Post, error) {
+	post, err := tx.Post.
 		Create().
 		SetTitle(post.Title).
 		SetContent(post.Content).
 		SetAuthorID(post.AuthorID).
-		Exec(ctx)
+		Save(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	return post, nil
+}
+
+func (s *PostStore) CreateAndTags(ctx context.Context, post *ent.Post, tags []string) error {
+	return withTx(s.db, ctx, func(tx *ent.Tx) error {
+		post, err := s.Create(ctx, tx, post)
+		if err != nil {
+			return nil
+		}
+		if err := s.createPostTags(ctx, tx, post, tags); err != nil {
+			return nil
+		}
+		return nil
+	})
+}
+
+func (s *PostStore) createPostTags(ctx context.Context, tx *ent.Tx, post *ent.Post, tags []string) error {
+	for _, tag := range tags {
+		// 태그가 존재하는지 확인하고, 없으면 생성
+		t, err := tx.Tag.Query().Where(entTag.Name(tag)).Only(ctx)
+		if ent.IsNotFound(err) {
+			t, err = tx.Tag.Create().SetName(tag).Save(ctx)
+			if err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
+		}
+
+		// 포스트에 태그 추가
+		_, err = tx.Post.UpdateOne(post).AddTags(t).Save(ctx)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -34,6 +70,7 @@ func (s *PostStore) GetAll(ctx context.Context) ([]*ent.Post, error) {
 		WithAuthor(func(q *ent.UserQuery) {
 			q.Select(user.FieldUsername)
 		}).
+		WithTags().
 		All(ctx)
 	if err != nil {
 		return nil, err
@@ -47,6 +84,7 @@ func (s *PostStore) GetByID(ctx context.Context, ID int) (*ent.Post, error) {
 		WithAuthor(func(q *ent.UserQuery) {
 			q.Select(user.FieldUsername)
 		}).
+		WithTags().
 		Where(post.ID(ID)).
 		Only(ctx)
 	if err != nil {

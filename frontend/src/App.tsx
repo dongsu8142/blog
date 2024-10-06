@@ -5,6 +5,7 @@ import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import { lazy, Suspense } from "react";
 import { CookiesProvider } from "react-cookie";
+import PostingPage from "./pages/PostingPage";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const PostPage = lazy(() => import("./pages/PostPage"));
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
 						<PostPage />
 					</Suspense>
 				),
+			},
+			{
+				path: "/posting",
+				element: <PostingPage />,
 			},
 		],
 	},

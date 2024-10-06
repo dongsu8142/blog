@@ -70,6 +70,11 @@ func AuthorID(v int) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldAuthorID, v))
 }
 
+// Views applies equality check predicate on the "views" field. It's identical to ViewsEQ.
+func Views(v int) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldViews, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldCreatedAt, v))
@@ -230,6 +235,46 @@ func AuthorIDNotIn(vs ...int) predicate.Post {
 	return predicate.Post(sql.FieldNotIn(FieldAuthorID, vs...))
 }
 
+// ViewsEQ applies the EQ predicate on the "views" field.
+func ViewsEQ(v int) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldViews, v))
+}
+
+// ViewsNEQ applies the NEQ predicate on the "views" field.
+func ViewsNEQ(v int) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldViews, v))
+}
+
+// ViewsIn applies the In predicate on the "views" field.
+func ViewsIn(vs ...int) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldViews, vs...))
+}
+
+// ViewsNotIn applies the NotIn predicate on the "views" field.
+func ViewsNotIn(vs ...int) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldViews, vs...))
+}
+
+// ViewsGT applies the GT predicate on the "views" field.
+func ViewsGT(v int) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldViews, v))
+}
+
+// ViewsGTE applies the GTE predicate on the "views" field.
+func ViewsGTE(v int) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldViews, v))
+}
+
+// ViewsLT applies the LT predicate on the "views" field.
+func ViewsLT(v int) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldViews, v))
+}
+
+// ViewsLTE applies the LTE predicate on the "views" field.
+func ViewsLTE(v int) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldViews, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldCreatedAt, v))
@@ -325,6 +370,29 @@ func HasAuthor() predicate.Post {
 func HasAuthorWith(preds ...predicate.User) predicate.Post {
 	return predicate.Post(func(s *sql.Selector) {
 		step := newAuthorStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTags applies the HasEdge predicate on the "tags" edge.
+func HasTags() predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, TagsTable, TagsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTagsWith applies the HasEdge predicate on the "tags" edge with a given conditions (other predicates).
+func HasTagsWith(preds ...predicate.Tag) predicate.Post {
+	return predicate.Post(func(s *sql.Selector) {
+		step := newTagsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

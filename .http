@@ -27,7 +27,8 @@ Authorization: Bearer {{login.response.body.data}}
 
 {
     "title": "hello world",
-    "content": "console.log"
+    "content": "console.log",
+    "tags": ["test"]
 }
 
 ### Get all posts

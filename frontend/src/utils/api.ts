@@ -1,3 +1,5 @@
+import { getCookie } from "./cookie";
+
 const baseURL =
 	"https://scaling-telegram-7ppjwxq9x4pfxvvj-8080.app.github.dev/v1";
 
@@ -12,3 +14,17 @@ export const getPost = (id: number) => {
 		method: "GET",
 	});
 };
+
+export const createPost = (title: string, content: string, tags: string[]) => {
+	return fetch(`${baseURL}/posts`, {
+		method: "POST",
+		headers: {
+			"Authorization": `Bearer ${getCookie("access_token")}`
+		},
+		body: JSON.stringify({
+			title,
+			content,
+			tags
+		}),
+	})
+}

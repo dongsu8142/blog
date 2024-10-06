@@ -12,7 +12,6 @@ const Layout = () => {
 	}, []);
 	const handleLogout = () => {
 		removeCookie("access_token");
-		window.location.href = "/";
 	};
 	return (
 		<>
@@ -29,11 +28,18 @@ const Layout = () => {
 						</Link>
 					</li>
 					{isLogin ? (
-						<li>
-							<a className="contrast" onClick={handleLogout}>
-								Logout
-							</a>
-						</li>
+						<>
+							<li>
+								<Link className="contrast" to="/posting">
+									Posting
+								</Link>
+							</li>
+							<li>
+								<a className="contrast" href="/" onClick={handleLogout}>
+									Logout
+								</a>
+							</li>
+						</>
 					) : (
 						<li>
 							<Link className="contrast" to="/login">

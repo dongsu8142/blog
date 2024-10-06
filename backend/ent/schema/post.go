@@ -17,8 +17,9 @@ type Post struct {
 func (Post) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("title").NotEmpty(),
-		field.String("content").NotEmpty(),
+		field.Text("content").NotEmpty(),
 		field.Int("author_id"),
+		field.Int("views").Default(0),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -32,5 +33,6 @@ func (Post) Edges() []ent.Edge {
 			Field("author_id").
 			Unique().
 			Required(),
+		edge.To("tags", Tag.Type),
 	}
 }

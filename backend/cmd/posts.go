@@ -16,8 +16,9 @@ type postKey string
 const postCtx postKey = "post"
 
 type CreatePostPayload struct {
-	Title   string `json:"title" validate:"required,max=100"`
-	Content string `json:"content" validate:"required,max=1000"`
+	Title   string   `json:"title" validate:"required,max=100"`
+	Content string   `json:"content" validate:"required,max=1000"`
+	Tags    []string `json:"tags" validate:"required"`
 }
 
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +43,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 
 	ctx := r.Context()
 
-	if err := app.store.Posts.Create(ctx, post); err != nil {
+	if err := app.store.Posts.CreateAndTags(ctx, post, payload.Tags); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
