@@ -1,5 +1,6 @@
-import type React from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import { login } from "../utils/api";
 import { setCookie } from "../utils/cookie";
 
 const LoginPage = () => {
@@ -7,33 +8,27 @@ const LoginPage = () => {
 	const [password, setPassword] = useState("");
 	const [alertHidden, setAlertHidden] = useState(true);
 
-	const handleLogin = async (event: React.FormEvent) => {
-		event.preventDefault();
-
-		const response = await fetch(
-			"https://scaling-telegram-7ppjwxq9x4pfxvvj-8080.app.github.dev/v1/auth/login",
-			{
-				method: "POST",
-				body: JSON.stringify({
-					username,
-					password,
-				}),
-			},
-		);
-		const result = await response.json();
-		if (response.status === 201) {
-			setCookie("access_token", result.data);
-			window.location.href = "/"; // 로그인 성공시 홈으로 이동합니다.
-		} else {
+	const { mutate: loginMutation } = useMutation({
+		mutationFn: login,
+		onSuccess: (data) => {
+			setCookie("access_token", data);
+			window.location.href = "/";
+		},
+		onError: () => {
 			setAlertHidden(false);
-		}
-	};
+		},
+	});
 
 	return (
 		<>
 			<main className="form">
 				<h1>Sign in</h1>
-				<form onSubmit={handleLogin}>
+				<form
+					onSubmit={(event) => {
+						event.preventDefault();
+						loginMutation({ username, password });
+					}}
+				>
 					<div className="alert alert-danger" role="alert" hidden={alertHidden}>
 						Incorrect login!
 					</div>

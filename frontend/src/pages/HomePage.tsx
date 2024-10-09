@@ -1,19 +1,22 @@
-import { useEffect, useState } from "react";
-import { getPosts } from "../utils/api";
-import type { Post } from "../utils/types";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { getPosts } from "../utils/api";
 import { getRelativeTimeString } from "../utils/date";
+import type { Post } from "../utils/types";
 
 const HomePage = () => {
-	const [posts, setPosts] = useState<[Post] | undefined>();
-	useEffect(() => {
-		getPosts().then((res) => {
-			setPosts(res.data);
-		});
-	}, []);
+	const { isSuccess, data: posts } = useQuery<Post[]>({
+		queryKey: ["posts"],
+		queryFn: getPosts,
+	});
+
+	if (!isSuccess) {
+		return <article aria-busy="true" />;
+	}
+
 	return (
 		<>
-			{posts?.map((post) => {
+			{posts.map((post) => {
 				const date = new Date(post.created_at);
 				return (
 					<article key={post.id}>

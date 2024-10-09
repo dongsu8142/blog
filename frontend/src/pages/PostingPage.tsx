@@ -1,14 +1,16 @@
+import { useMutation } from "@tanstack/react-query";
 import MDEditor from "@uiw/react-md-editor";
-import type { KeyboardEvent, ChangeEvent } from "react";
+import type { ChangeEvent, KeyboardEvent } from "react";
 import { useState } from "react";
 import rehypeSanitize from "rehype-sanitize";
 import { createPost } from "../utils/api";
 
 const PostingPage = () => {
-	const [content, setContent] = useState<string | undefined>("");
+	const [content, setContent] = useState<string>("");
 	const [title, setTitle] = useState("");
 	const [tags, setTags] = useState<string[]>([]);
 	const [tag, setTag] = useState("");
+	const [alert, setAlert] = useState("");
 	const removeTag = (i: number) => {
 		const clonetags = tags.slice();
 		clonetags.splice(i, 1);
@@ -31,24 +33,27 @@ const PostingPage = () => {
 		setTags([...tags, tag]);
 		setTag("");
 	};
-	const handleSubmit = async () => {
-		if (content === undefined || tags.length === 0) {
-			return;
-		}
-		const response = await createPost(title, content, tags);
-
-		if (response.status === 201) {
+	const { mutate: createPostMutation } = useMutation({
+		mutationFn: createPost,
+		onSuccess: () => {
 			window.location.href = "/";
-		}
-	};
+		},
+		onError: (err) => {
+			setAlert(err.message);
+		},
+	});
 	return (
 		<form>
+			<div className="alert alert-danger" role="alert" hidden={!alert}>
+				{alert}
+			</div>
 			<fieldset>
 				<input
 					placeholder="제목"
 					autoComplete="title"
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
+					required
 				/>
 				<div className="tag-container">
 					{tags.map((e, i) => (
@@ -73,16 +78,21 @@ const PostingPage = () => {
 				</div>
 				<MDEditor
 					value={content}
-					onChange={setContent}
+					onChange={(v) => (v ? setContent(v) : setContent(""))}
 					textareaProps={{
 						placeholder: "내용을 입력해주세요.",
+						required: true,
 					}}
 					previewOptions={{
 						rehypePlugins: [[rehypeSanitize]],
 					}}
+					aria-required
 				/>
 				<br />
-				<button type="button" onClick={handleSubmit}>
+				<button
+					type="submit"
+					onSubmit={() => createPostMutation({ title, content, tags })}
+				>
 					출간하기
 				</button>
 			</fieldset>

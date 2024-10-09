@@ -1,14 +1,15 @@
 import "./App.scss";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { CookiesProvider } from "react-cookie";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import Layout from "./components/Layout";
+import HomePage from "./pages/HomePage";
+import PostPage from "./pages/PostPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
-import Layout from "./components/Layout";
-import { lazy, Suspense } from "react";
-import { CookiesProvider } from "react-cookie";
 import PostingPage from "./pages/PostingPage";
 
-const HomePage = lazy(() => import("./pages/HomePage"));
-const PostPage = lazy(() => import("./pages/PostPage"));
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
 	{
@@ -18,11 +19,7 @@ const router = createBrowserRouter([
 		children: [
 			{
 				path: "/",
-				element: (
-					<Suspense fallback={<article aria-busy="true" />}>
-						<HomePage />
-					</Suspense>
-				),
+				element: <HomePage />,
 			},
 			{
 				path: "/login",
@@ -30,11 +27,7 @@ const router = createBrowserRouter([
 			},
 			{
 				path: "/post/:id",
-				element: (
-					<Suspense fallback={<article aria-busy="true" />}>
-						<PostPage />
-					</Suspense>
-				),
+				element: <PostPage />,
 			},
 			{
 				path: "/posting",
@@ -48,7 +41,9 @@ const App = () => {
 	return (
 		<div className="container">
 			<CookiesProvider>
-				<RouterProvider router={router} />
+				<QueryClientProvider client={queryClient}>
+					<RouterProvider router={router} />
+				</QueryClientProvider>
 			</CookiesProvider>
 		</div>
 	);

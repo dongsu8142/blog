@@ -15,4 +15,4 @@ export const getRelativeTimeString = (date: Date) => {
 	}
 	const days = Math.floor(diffInSeconds / 86400);
 	return `${days}일 전`;
-}
+};
