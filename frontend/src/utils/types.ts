@@ -4,9 +4,15 @@ export interface Post {
 	content: string;
 	created_at: string;
 	updated_at: string;
-	author: PostAuthor
+	author: PostAuthor;
+	tags: PostTag[];
 }
 
 export interface PostAuthor {
 	username: string;
+}
+
+export interface PostTag {
+	id: number;
+	name: string;
 }

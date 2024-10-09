@@ -3,6 +3,8 @@ import { useParams } from "react-router";
 import { getPost } from "../utils/api";
 import type { Post } from "../utils/types";
 import { useNavigate } from "react-router-dom";
+import MDEditor from "@uiw/react-md-editor";
+import rehypeSanitize from "rehype-sanitize";
 
 const PostPage = () => {
 	const params = useParams<{ id: string }>();
@@ -28,7 +30,21 @@ const PostPage = () => {
 		<div>
 			{post?.title}
 			<hr />
-			{post?.content}
+			{post?.author.username} ·{" "}
+			{new Date(post?.created_at!).toLocaleDateString()}
+			<div className="tag-container">
+				{post?.tags.map((tag) => (
+					<div className="tag" key={tag.id}>
+						{tag.name}
+					</div>
+				))}
+			</div>
+			<hr />
+			<MDEditor.Markdown
+				source={post?.content}
+				rehypePlugins={[rehypeSanitize]}
+				style={{ backgroundColor: "var(--pico-background-color)" }}
+			/>
 		</div>
 	);
 };

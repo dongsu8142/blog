@@ -19,12 +19,12 @@ export const createPost = (title: string, content: string, tags: string[]) => {
 	return fetch(`${baseURL}/posts`, {
 		method: "POST",
 		headers: {
-			"Authorization": `Bearer ${getCookie("access_token")}`
+			Authorization: `Bearer ${getCookie("access_token")}`,
 		},
 		body: JSON.stringify({
 			title,
 			content,
-			tags
+			tags,
 		}),
-	})
-}
+	});
+};

@@ -83,3 +83,12 @@ footer .username::after {
 .tag-input {
     height: 30px;
 }
+
+.tag {
+    font-size: 0.75rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    border-radius: 1rem;
+    background-color: #{$zinc-500};
+    margin-right: 0.875rem;
+}
