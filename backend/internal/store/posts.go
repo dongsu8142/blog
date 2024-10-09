@@ -96,6 +96,12 @@ func (s *PostStore) GetByID(ctx context.Context, ID int) (*ent.Post, error) {
 		}
 	}
 
+	post, err = post.Update().AddViews(1).Save(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return post, nil
 }
 

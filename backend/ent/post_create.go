@@ -184,6 +184,9 @@ func (pc *PostCreate) check() error {
 	if len(pc.mutation.AuthorIDs()) == 0 {
 		return &ValidationError{Name: "author", err: errors.New(`ent: missing required edge "Post.author"`)}
 	}
+	if len(pc.mutation.TagsIDs()) == 0 {
+		return &ValidationError{Name: "tags", err: errors.New(`ent: missing required edge "Post.tags"`)}
+	}
 	return nil
 }
 

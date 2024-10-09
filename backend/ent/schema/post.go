@@ -33,6 +33,7 @@ func (Post) Edges() []ent.Edge {
 			Field("author_id").
 			Unique().
 			Required(),
-		edge.To("tags", Tag.Type),
+		edge.To("tags", Tag.Type).
+			Required(),
 	}
 }
