@@ -33,7 +33,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user := getUserFromContext(r)
+	user := getUserFromCtx(r)
 
 	post := &ent.Post{
 		Title:    payload.Title,

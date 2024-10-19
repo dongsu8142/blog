@@ -8,6 +8,35 @@ import (
 )
 
 var (
+	// CommentsColumns holds the columns for the "comments" table.
+	CommentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "post_id", Type: field.TypeInt},
+		{Name: "author_id", Type: field.TypeInt},
+	}
+	// CommentsTable holds the schema information for the "comments" table.
+	CommentsTable = &schema.Table{
+		Name:       "comments",
+		Columns:    CommentsColumns,
+		PrimaryKey: []*schema.Column{CommentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "comments_posts_comments",
+				Columns:    []*schema.Column{CommentsColumns[4]},
+				RefColumns: []*schema.Column{PostsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "comments_users_comments",
+				Columns:    []*schema.Column{CommentsColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// PostsColumns holds the columns for the "posts" table.
 	PostsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -86,6 +115,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CommentsTable,
 		PostsTable,
 		TagsTable,
 		UsersTable,
@@ -94,6 +124,8 @@ var (
 )
 
 func init() {
+	CommentsTable.ForeignKeys[0].RefTable = PostsTable
+	CommentsTable.ForeignKeys[1].RefTable = UsersTable
 	PostsTable.ForeignKeys[0].RefTable = UsersTable
 	PostTagsTable.ForeignKeys[0].RefTable = PostsTable
 	PostTagsTable.ForeignKeys[1].RefTable = TagsTable

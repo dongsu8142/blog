@@ -10,7 +10,7 @@ type userKey string
 
 const userCtx userKey = "user"
 
-func getUserFromContext(r *http.Request) *ent.User {
+func getUserFromCtx(r *http.Request) *ent.User {
 	user, _ := r.Context().Value(userCtx).(*ent.User)
 	return user
 }

@@ -43,9 +43,11 @@ type PostEdges struct {
 	Author *User `json:"author,omitempty"`
 	// Tags holds the value of the tags edge.
 	Tags []*Tag `json:"tags,omitempty"`
+	// Comments holds the value of the comments edge.
+	Comments []*Comment `json:"comments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // AuthorOrErr returns the Author value or an error if the edge
@@ -66,6 +68,15 @@ func (e PostEdges) TagsOrErr() ([]*Tag, error) {
 		return e.Tags, nil
 	}
 	return nil, &NotLoadedError{edge: "tags"}
+}
+
+// CommentsOrErr returns the Comments value or an error if the edge
+// was not loaded in eager-loading.
+func (e PostEdges) CommentsOrErr() ([]*Comment, error) {
+	if e.loadedTypes[2] {
+		return e.Comments, nil
+	}
+	return nil, &NotLoadedError{edge: "comments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -157,6 +168,11 @@ func (po *Post) QueryAuthor() *UserQuery {
 // QueryTags queries the "tags" edge of the Post entity.
 func (po *Post) QueryTags() *TagQuery {
 	return NewPostClient(po.config).QueryTags(po)
+}
+
+// QueryComments queries the "comments" edge of the Post entity.
+func (po *Post) QueryComments() *CommentQuery {
+	return NewPostClient(po.config).QueryComments(po)
 }
 
 // Update returns a builder for updating this Post.

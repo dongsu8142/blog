@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/dongsu8142/blog/ent/comment"
 	"github.com/dongsu8142/blog/ent/post"
 	"github.com/dongsu8142/blog/ent/schema"
 	"github.com/dongsu8142/blog/ent/user"
@@ -14,6 +15,22 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	commentFields := schema.Comment{}.Fields()
+	_ = commentFields
+	// commentDescContent is the schema descriptor for content field.
+	commentDescContent := commentFields[0].Descriptor()
+	// comment.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	comment.ContentValidator = commentDescContent.Validators[0].(func(string) error)
+	// commentDescCreatedAt is the schema descriptor for created_at field.
+	commentDescCreatedAt := commentFields[3].Descriptor()
+	// comment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	comment.DefaultCreatedAt = commentDescCreatedAt.Default.(func() time.Time)
+	// commentDescUpdatedAt is the schema descriptor for updated_at field.
+	commentDescUpdatedAt := commentFields[4].Descriptor()
+	// comment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	comment.DefaultUpdatedAt = commentDescUpdatedAt.Default.(func() time.Time)
+	// comment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	comment.UpdateDefaultUpdatedAt = commentDescUpdatedAt.UpdateDefault.(func() time.Time)
 	postFields := schema.Post{}.Fields()
 	_ = postFields
 	// postDescTitle is the schema descriptor for title field.

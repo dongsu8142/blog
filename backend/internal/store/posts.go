@@ -33,10 +33,10 @@ func (s *PostStore) CreateAndTags(ctx context.Context, post *ent.Post, tags []st
 	return withTx(s.db, ctx, func(tx *ent.Tx) error {
 		post, err := s.Create(ctx, tx, post)
 		if err != nil {
-			return nil
+			return err
 		}
 		if err := s.createPostTags(ctx, tx, post, tags); err != nil {
-			return nil
+			return err
 		}
 		return nil
 	})
@@ -85,6 +85,7 @@ func (s *PostStore) GetByID(ctx context.Context, ID int) (*ent.Post, error) {
 			q.Select(user.FieldUsername)
 		}).
 		WithTags().
+		WithComments().
 		Where(post.ID(ID)).
 		Only(ctx)
 	if err != nil {
@@ -96,7 +97,7 @@ func (s *PostStore) GetByID(ctx context.Context, ID int) (*ent.Post, error) {
 		}
 	}
 
-	post, err = post.Update().AddViews(1).Save(ctx)
+	_, err = post.Update().AddViews(1).Save(ctx)
 
 	if err != nil {
 		return nil, err

@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	entgo.io/ent v0.14.1
-	github.com/andybalholm/brotli v1.1.0
+	github.com/andybalholm/brotli v1.1.1
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/cors v1.2.1
 	github.com/go-playground/validator/v10 v10.22.1

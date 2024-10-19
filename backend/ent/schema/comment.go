@@ -8,32 +8,34 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// Post holds the schema definition for the Post entity.
-type Post struct {
+// Comment holds the schema definition for the Comment entity.
+type Comment struct {
 	ent.Schema
 }
 
-// Fields of the Post.
-func (Post) Fields() []ent.Field {
+// Fields of the Comment.
+func (Comment) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("title").NotEmpty(),
 		field.Text("content").NotEmpty(),
 		field.Int("author_id"),
-		field.Int("views").Default(0),
+		field.Int("post_id"),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 
-// Edges of the Post.
-func (Post) Edges() []ent.Edge {
+// Edges of the Comment.
+func (Comment) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("author", User.Type).
-			Ref("posts").
+			Ref("comments").
 			Field("author_id").
 			Unique().
 			Required(),
-		edge.To("tags", Tag.Type),
-		edge.To("comments", Comment.Type),
+		edge.From("post", Post.Type).
+			Ref("comments").
+			Field("post_id").
+			Unique().
+			Required(),
 	}
 }

@@ -23,12 +23,16 @@ type Storage struct {
 		CreateAndTags(ctx context.Context, post *ent.Post, tags []string) error
 		Delete(context.Context, int) error
 	}
+	Comments interface {
+		Create(context.Context, *ent.Comment) error
+	}
 }
 
 func NewStorage(db *ent.Client) Storage {
 	return Storage{
-		Users: &UserStore{db},
-		Posts: &PostStore{db},
+		Users:    &UserStore{db},
+		Posts:    &PostStore{db},
+		Comments: &CommentStore{db},
 	}
 }
 

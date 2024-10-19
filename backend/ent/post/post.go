@@ -30,6 +30,8 @@ const (
 	EdgeAuthor = "author"
 	// EdgeTags holds the string denoting the tags edge name in mutations.
 	EdgeTags = "tags"
+	// EdgeComments holds the string denoting the comments edge name in mutations.
+	EdgeComments = "comments"
 	// Table holds the table name of the post in the database.
 	Table = "posts"
 	// AuthorTable is the table that holds the author relation/edge.
@@ -44,6 +46,13 @@ const (
 	// TagsInverseTable is the table name for the Tag entity.
 	// It exists in this package in order to avoid circular dependency with the "tag" package.
 	TagsInverseTable = "tags"
+	// CommentsTable is the table that holds the comments relation/edge.
+	CommentsTable = "comments"
+	// CommentsInverseTable is the table name for the Comment entity.
+	// It exists in this package in order to avoid circular dependency with the "comment" package.
+	CommentsInverseTable = "comments"
+	// CommentsColumn is the table column denoting the comments relation/edge.
+	CommentsColumn = "post_id"
 )
 
 // Columns holds all SQL columns for post fields.
@@ -146,6 +155,20 @@ func ByTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCommentsCount orders the results by comments count.
+func ByCommentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCommentsStep(), opts...)
+	}
+}
+
+// ByComments orders the results by comments terms.
+func ByComments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCommentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newAuthorStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -158,5 +181,12 @@ func newTagsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TagsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, TagsTable, TagsPrimaryKey...),
+	)
+}
+func newCommentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CommentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CommentsTable, CommentsColumn),
 	)
 }

@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/dongsu8142/blog/ent/comment"
 	"github.com/dongsu8142/blog/ent/post"
 	"github.com/dongsu8142/blog/ent/tag"
 	"github.com/dongsu8142/blog/ent/user"
@@ -102,6 +103,21 @@ func (pc *PostCreate) AddTags(t ...*Tag) *PostCreate {
 	return pc.AddTagIDs(ids...)
 }
 
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (pc *PostCreate) AddCommentIDs(ids ...int) *PostCreate {
+	pc.mutation.AddCommentIDs(ids...)
+	return pc
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (pc *PostCreate) AddComments(c ...*Comment) *PostCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pc.AddCommentIDs(ids...)
+}
+
 // Mutation returns the PostMutation object of the builder.
 func (pc *PostCreate) Mutation() *PostMutation {
 	return pc.mutation
@@ -184,9 +200,6 @@ func (pc *PostCreate) check() error {
 	if len(pc.mutation.AuthorIDs()) == 0 {
 		return &ValidationError{Name: "author", err: errors.New(`ent: missing required edge "Post.author"`)}
 	}
-	if len(pc.mutation.TagsIDs()) == 0 {
-		return &ValidationError{Name: "tags", err: errors.New(`ent: missing required edge "Post.tags"`)}
-	}
 	return nil
 }
 
@@ -259,6 +272,22 @@ func (pc *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   post.CommentsTable,
+			Columns: []string{post.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
