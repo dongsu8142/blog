@@ -1,46 +1,42 @@
 package main
 
 import (
-	"encoding/json"
-	"net/http"
-
 	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v3"
 )
 
-var Validate *validator.Validate
-
-func init() {
-	Validate = validator.New(validator.WithRequiredStructEnabled())
+type structValidator struct {
+    validate *validator.Validate
 }
 
-func writeJSON(w http.ResponseWriter, status int, data any) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	return json.NewEncoder(w).Encode(data)
+func (v *structValidator) Validate(out any) error {
+    return v.validate.Struct(out)
 }
 
-func readJSON(w http.ResponseWriter, r *http.Request, data any) error {
-	maxBytes := 1_048_578 // 1mb
-	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+func readJSON(c fiber.Ctx, data any) error {
+	// maxBytes := 1_048_578 // 1mb
+	// r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
+	// decoder := json.NewDecoder(c.Request().BodyStream())
+	// decoder.DisallowUnknownFields()
 
-	return decoder.Decode(data)
+	// return decoder.Decode(data)
+
+	return c.Bind().JSON(data)
 }
 
-func writeJSONError(w http.ResponseWriter, status int, message string) error {
+func writeJSONError(c fiber.Ctx, status int, message string) error {
 	type envelope struct {
 		Error string `json:"error"`
 	}
 
-	return writeJSON(w, status, &envelope{Error: message})
+	return c.Status(status).JSON(&envelope{Error: message})
 }
 
-func (app *application) jsonResponse(w http.ResponseWriter, status int, data any) error {
+func (app *application) jsonResponse(c fiber.Ctx, status int, data any) error {
 	type envelope struct {
 		Data any `json:"data"`
 	}
 
-	return writeJSON(w, status, &envelope{Data: data})
+	return c.Status(status).JSON(&envelope{Data: data})
 }

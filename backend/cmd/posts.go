@@ -1,14 +1,13 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/dongsu8142/blog/ent"
 	"github.com/dongsu8142/blog/internal/store"
-	"github.com/go-chi/chi/v5"
+	"github.com/gofiber/fiber/v3"
 )
 
 type postKey string
@@ -21,19 +20,13 @@ type CreatePostPayload struct {
 	Tags    []string `json:"tags" validate:"required"`
 }
 
-func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) createPostHandler(c fiber.Ctx) error {
 	var payload CreatePostPayload
-	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestResponse(w, r, err)
-		return
+	if err := readJSON(c, &payload); err != nil {
+		return app.badRequestResponse(c, err)
 	}
 
-	if err := Validate.Struct(payload); err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	user := getUserFromCtx(r)
+	user := getUserFromCtx(c)
 
 	post := &ent.Post{
 		Title:    payload.Title,
@@ -41,71 +34,71 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		AuthorID: user.ID,
 	}
 
-	ctx := r.Context()
+	ctx := c.Context()
 
 	if err := app.store.Posts.CreateAndTags(ctx, post, payload.Tags); err != nil {
-		app.internalServerError(w, r, err)
-		return
+		return app.internalServerError(c, err)
 	}
 
-	if err := app.jsonResponse(w, http.StatusCreated, post); err != nil {
-		app.internalServerError(w, r, err)
-		return
+	if err := app.jsonResponse(c, http.StatusCreated, post); err != nil {
+		return app.internalServerError(c, err)
 	}
+	return nil
 }
 
-func (app *application) getPostsHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+func (app *application) getPostsHandler(c fiber.Ctx) error {
+	ctx := c.Context()
 
 	post, err := app.store.Posts.GetAll(ctx)
 	if err != nil {
-		app.internalServerError(w, r, err)
-		return
+		return app.internalServerError(c, err)
 	}
 
-	if err := app.jsonResponse(w, http.StatusOK, post); err != nil {
-		app.internalServerError(w, r, err)
-		return
+	if err := app.jsonResponse(c, http.StatusOK, post); err != nil {
+		return app.internalServerError(c, err)
+		
 	}
+
+	return nil
 }
 
-func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
-	post := getPostFromCtx(r)
+func (app *application) getPostHandler(c fiber.Ctx) error {
+	post := getPostFromCtx(c)
 
-	if err := app.jsonResponse(w, http.StatusOK, post); err != nil {
-		app.internalServerError(w, r, err)
-		return
+	if err := app.jsonResponse(c, http.StatusOK, post); err != nil {
+		return app.internalServerError(c, err)
 	}
+
+	return nil
 }
 
-func (app *application) postsContextMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		idParam := chi.URLParam(r, "postID")
+func (app *application) postsContextMiddleware() fiber.Handler {
+	return func(c fiber.Ctx) error {
+		idParam := c.Params("postID")
 		id, err := strconv.ParseInt(idParam, 10, 64)
 		if err != nil {
-			app.internalServerError(w, r, err)
-			return
+			return app.internalServerError(c, err)
 		}
 
-		ctx := r.Context()
+		ctx := c.Context()
 
 		post, err := app.store.Posts.GetByID(ctx, int(id))
 		if err != nil {
 			switch {
 			case errors.Is(err, store.ErrNotFound):
-				app.notFoundResponse(w, r, err)
+				return app.notFoundResponse(c, err)
 			default:
-				app.internalServerError(w, r, err)
+				return app.internalServerError(c, err)
 			}
-			return
 		}
 
-		ctx = context.WithValue(ctx, postCtx, post)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+		ctx.SetUserValue(postCtx, post)
+
+		return c.Next()
+	}
 }
 
-func getPostFromCtx(r *http.Request) *ent.Post {
-	post, _ := r.Context().Value(postCtx).(*ent.Post)
+func getPostFromCtx(c fiber.Ctx) *ent.Post {
+	post, _ := c.Context().Value(postCtx).(*ent.Post)
 	return post
 }

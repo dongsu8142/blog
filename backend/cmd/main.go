@@ -83,7 +83,5 @@ func main() {
 
 	expvar.NewString("version").Set(version)
 
-	mux := app.mount()
-
-	logger.Fatal(app.run(mux))
+	logger.Fatal(app.run())
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/dongsu8142/blog/ent"
 	"github.com/dongsu8142/blog/internal/store"
+	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -21,32 +22,24 @@ type RegisterPayload struct {
 	Password string `json:"password" validate:"required,min=3,max=72"`
 }
 
-func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) loginHandler(c fiber.Ctx)error {
 	var payload LoginPayload
-	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestResponse(w, r, err)
-		return
+	if err := readJSON(c, &payload); err != nil {
+		return app.badRequestResponse(c, err)
 	}
 
-	if err := Validate.Struct(payload); err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	user, err := app.store.Users.GetByUsername(r.Context(), payload.Username)
+	user, err := app.store.Users.GetByUsername(c.Context(), payload.Username)
 	if err != nil {
 		switch err {
 		case store.ErrNotFound:
-			app.unauthorizedErrorResponse(w, r, err)
+			return app.unauthorizedErrorResponse(c, err)
 		default:
-			app.internalServerError(w, r, err)
+			return app.internalServerError(c, err)
 		}
-		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(payload.Password)); err != nil {
-		app.unauthorizedErrorResponse(w, r, err)
-		return
+		return app.unauthorizedErrorResponse(c, err)
 	}
 
 	claims := jwt.MapClaims{
@@ -60,26 +53,20 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	token, err := app.authenticator.GenerateToken(claims)
 	if err != nil {
-		app.internalServerError(w, r, err)
-		return
+		return app.internalServerError(c, err)
 	}
 
-	if err := app.jsonResponse(w, http.StatusCreated, token); err != nil {
-		app.internalServerError(w, r, err)
+	if err := app.jsonResponse(c, http.StatusCreated, token); err != nil {
+		return app.internalServerError(c, err)
 	}
+	return nil
 }
 
-func (app *application) registerHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) registerHandler(c fiber.Ctx) error {
 	var payload RegisterPayload
 
-	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	if err := Validate.Struct(payload); err != nil {
-		app.badRequestResponse(w, r, err)
-		return
+	if err := readJSON(c, &payload); err != nil {
+		return app.badRequestResponse(c, err)
 	}
 
 	user := &ent.User{
@@ -88,18 +75,15 @@ func (app *application) registerHandler(w http.ResponseWriter, r *http.Request) 
 		Password: []byte(payload.Password),
 	}
 
-	ctx := r.Context()
-
-	if err := app.store.Users.Create(ctx, user); err != nil {
+	if err := app.store.Users.Create(c.Context(), user); err != nil {
 		switch err {
 		case store.ErrDuplicateEmail:
-			app.badRequestResponse(w, r, err)
+			return app.badRequestResponse(c, err)
 		case store.ErrDuplicateUsername:
-			app.badRequestResponse(w, r, err)
+			return app.badRequestResponse(c, err)
 		default:
-			app.internalServerError(w, r, err)
+			return app.internalServerError(c, err)
 		}
-		return
 	}
 
 	data := map[string]string{
@@ -107,6 +91,8 @@ func (app *application) registerHandler(w http.ResponseWriter, r *http.Request) 
 		"message": "registered user",
 	}
 
-	if err := app.jsonResponse(w, http.StatusCreated, data); err != nil {
+	if err := app.jsonResponse(c, http.StatusCreated, data); err != nil {
+		return app.internalServerError(c, err)
 	}
+	return nil
 }

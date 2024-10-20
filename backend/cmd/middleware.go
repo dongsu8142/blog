@@ -3,56 +3,51 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/dongsu8142/blog/ent"
+	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
+func (app *application) AuthTokenMiddleware() fiber.Handler {
+	return func(c fiber.Ctx) error {
+		authHeader := c.Get("Authorization")
 		if authHeader == "" {
-			app.unauthorizedErrorResponse(w, r, fmt.Errorf("authorization header is missing"))
-			return
+			return app.unauthorizedErrorResponse(c, fmt.Errorf("authorization header is missing"))
 		}
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			app.unauthorizedErrorResponse(w, r, fmt.Errorf("authorization header is malformed"))
-			return
+			return app.unauthorizedErrorResponse(c, fmt.Errorf("authorization header is malformed"))
 		}
 
 		token := parts[1]
 
 		jwtToken, err := app.authenticator.ValidateToken(token)
 		if err != nil {
-			app.unauthorizedErrorResponse(w, r, err)
-			return
+			return app.unauthorizedErrorResponse(c, err)
 		}
 
 		claims, _ := jwtToken.Claims.(jwt.MapClaims)
 
 		userID, err := strconv.Atoi(fmt.Sprintf("%.f", claims["sub"]))
 		if err != nil {
-			app.unauthorizedErrorResponse(w, r, err)
-			return
+			return app.unauthorizedErrorResponse(c, err)
 		}
 
-		ctx := r.Context()
+		ctx := c.Context()
 
 		user, err := app.getUser(ctx, userID)
 		if err != nil {
-			app.unauthorizedErrorResponse(w, r, err)
-			return
+			return app.unauthorizedErrorResponse(c, err)
 		}
 
-		ctx = context.WithValue(ctx, userCtx, user)
-
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+		ctx.SetUserValue(userCtx, user)
+		
+		return c.Next()
+	}
 }
 
 func (app *application) getUser(ctx context.Context, userID int) (*ent.User, error) {

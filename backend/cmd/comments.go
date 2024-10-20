@@ -4,25 +4,20 @@ import (
 	"net/http"
 
 	"github.com/dongsu8142/blog/ent"
+	"github.com/gofiber/fiber/v3"
 )
 
 type CreateCommentPayload struct {
 	Content string `json:"content" validate:"required,max=1000"`
 }
 
-func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) createCommentHandler(c fiber.Ctx) error {
 	var payload CreateCommentPayload
-	user := getUserFromCtx(r)
-	post := getPostFromCtx(r)
+	user := getUserFromCtx(c)
+	post := getPostFromCtx(c)
 
-	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	if err := Validate.Struct(payload); err != nil {
-		app.badRequestResponse(w, r, err)
-		return
+	if err := readJSON(c, &payload); err != nil {
+		return app.badRequestResponse(c, err)
 	}
 
 	comment := &ent.Comment{
@@ -31,6 +26,13 @@ func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Requ
 		Content:  payload.Content,
 	}
 
-	ctx := r.Context()
-	app.store.Comments.Create(ctx, comment)
+	ctx := c.Context()
+	if err := app.store.Comments.Create(ctx, comment); err!= nil {
+		return app.internalServerError(c, err)
+	}
+
+	if err := app.jsonResponse(c, http.StatusCreated, comment); err != nil {
+		return app.internalServerError(c, err)
+	}
+	return nil
 }
