@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/dongsu8142/blog/internal/auth"
 	"github.com/dongsu8142/blog/internal/store"
 	"github.com/go-playground/validator/v10"
@@ -56,6 +57,8 @@ type tokenConfig struct {
 func (app *application) run() error {
 	srv := fiber.New(fiber.Config{
 		StructValidator: &structValidator{validate: validator.New(validator.WithRequiredStructEnabled())},
+		JSONEncoder: sonic.Marshal,
+		JSONDecoder: sonic.Unmarshal,
 		WriteTimeout: time.Second *30,
 		ReadTimeout: time.Second *10,
 		IdleTimeout: time.Minute,

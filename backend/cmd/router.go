@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/compress"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 )
@@ -11,13 +12,14 @@ import (
 func (app *application) SetupRoutes(fiberApp *fiber.App) {
 	// Middleware
 	fiberApp.Use(compress.New(compress.Config{
-		Level: compress.LevelBestCompression,
+		Level: compress.LevelBestSpeed,
 	}))
 	fiberApp.Use(logger.New())
 	fiberApp.Use(recover.New())
 	fiberApp.Use(cors.New())
 
 	api := fiberApp.Group("/v1")
+	api.Get(healthcheck.DefaultLivenessEndpoint, healthcheck.NewHealthChecker())
 	api.Get("/health", app.healthCheckHandler)
 
 	// Auth
