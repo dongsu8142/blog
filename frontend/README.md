@@ -1,29 +1,16 @@
-# Rsbuild Project
+# Fresh project
 
-## Setup
+Your new Fresh project is ready to go. You can follow the Fresh "Getting
+Started" guide here: https://fresh.deno.dev/docs/getting-started
 
-Install the dependencies:
+### Usage
 
-```bash
-pnpm install
+Make sure to install Deno: https://deno.land/manual/getting_started/installation
+
+Then start the project in development mode:
+
+```
+deno task dev
 ```
 
-## Get Started
-
-Start the dev server:
-
-```bash
-pnpm dev
-```
-
-Build the app for production:
-
-```bash
-pnpm build
-```
-
-Preview the production build locally:
-
-```bash
-pnpm preview
-```
+This will watch the project directory and restart as necessary.
