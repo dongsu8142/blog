@@ -10,7 +10,8 @@
     "vscode": {
       "settings": {
         "files.autoSave": "off",
-        "notebook.formatOnSave.enabled": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "denoland.vscode-deno",
         "workbench.iconTheme": "material-icon-theme",
         "terminal.integrated.defaultProfile.linux": "fish"
       },
