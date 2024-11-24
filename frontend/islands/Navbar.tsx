@@ -35,6 +35,12 @@ export const Navbar = () => {
                     </button>
                     {isDropdownOpen && (
                       <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        <div className="px-4 py-2 border-b">
+                          <p className="font-medium">Sarah Chen</p>
+                          <p className="text-sm text-gray-500">
+                            sarah@example.com
+                          </p>
+                        </div>
                         <a
                           href="#"
                           class="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -49,7 +55,7 @@ export const Navbar = () => {
                         </a>
                         <a
                           href="#"
-                          class="flex px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          class="flex px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                           onClick={() => setIsLoggedIn(false)}
                         >
                           <LogOut class="h-5 w-5 mr-2" /> 로그아웃
@@ -60,13 +66,14 @@ export const Navbar = () => {
                 </>
               )
               : (
-                <button
-                  onClick={() => setIsLoggedIn(true)}
+                <a
+                  // onClick={() => setIsLoggedIn(true)}
+                  href="/login"
                   class="flex items-center px-3 py-2 rounded-md text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
                   <LogIn class="h-5 w-5 mr-2" />
                   로그인
-                </button>
+                </a>
               )}
           </div>
         </div>

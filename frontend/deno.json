@@ -18,6 +18,7 @@
     "**/_fresh/*"
   ],
   "imports": {
+    "@tanstack/react-query": "npm:@tanstack/react-query@^5.61.0",
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.25",
     "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
     "lucide-preact": "npm:lucide-preact@^0.456.0",

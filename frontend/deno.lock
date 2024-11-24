@@ -1,6 +1,7 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.25",
     "jsr:@fresh/core@^2.0.0-alpha.25": "2.0.0-alpha.25",
     "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7": "0.0.1-alpha.7",
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.0",
@@ -13,6 +14,7 @@
     "jsr:@std/fmt@1": "1.0.3",
     "jsr:@std/fs@1": "1.0.5",
     "jsr:@std/html@1": "1.0.3",
+    "jsr:@std/json@1": "1.0.1",
     "jsr:@std/jsonc@1": "1.0.1",
     "jsr:@std/media-types@1": "1.0.3",
     "jsr:@std/path@0.221": "0.221.0",
@@ -22,6 +24,7 @@
     "jsr:@std/semver@1": "1.0.3",
     "npm:@preact/signals@^1.2.3": "1.3.0_preact@10.24.3",
     "npm:@preact/signals@^1.3.0": "1.3.0_preact@10.24.3",
+    "npm:@tanstack/react-query@^5.61.0": "5.61.0_react@18.3.1",
     "npm:autoprefixer@10.4.17": "10.4.17_postcss@8.4.35",
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
@@ -60,6 +63,7 @@
     "@fresh/plugin-tailwind@0.0.1-alpha.7": {
       "integrity": "b940991bdb76f0995dc58b25183f1001d72c4020e049d384ad3fb751556aa2a9",
       "dependencies": [
+        "jsr:@fresh/core@^2.0.0-alpha.1",
         "jsr:@std/path@0.221",
         "npm:autoprefixer",
         "npm:cssnano",
@@ -102,8 +106,14 @@
     "@std/html@1.0.3": {
       "integrity": "7a0ac35e050431fb49d44e61c8b8aac1ebd55937e0dc9ec6409aa4bab39a7988"
     },
+    "@std/json@1.0.1": {
+      "integrity": "1f0f70737e8827f9acca086282e903677bc1bb0c8ffcd1f21bca60039563049f"
+    },
     "@std/jsonc@1.0.1": {
-      "integrity": "6b36956e2a7cbb08ca5ad7fbec72e661e6217c202f348496ea88747636710dda"
+      "integrity": "6b36956e2a7cbb08ca5ad7fbec72e661e6217c202f348496ea88747636710dda",
+      "dependencies": [
+        "jsr:@std/json"
+      ]
     },
     "@std/media-types@1.0.3": {
       "integrity": "b12d30a7852f7578f4d210622df713bbfd1cbdd9b4ec2eaf5c1845ab70bab159"
@@ -260,6 +270,16 @@
       "dependencies": [
         "@preact/signals-core",
         "preact"
+      ]
+    },
+    "@tanstack/query-core@5.60.6": {
+      "integrity": "sha512-tI+k0KyCo1EBJ54vxK1kY24LWj673ujTydCZmzEZKAew4NqZzTaVQJEuaG1qKj2M03kUHN46rchLRd+TxVq/zQ=="
+    },
+    "@tanstack/react-query@5.61.0_react@18.3.1": {
+      "integrity": "sha512-SBzV27XAeCRBOQ8QcC94w2H1Md0+LI0gTWwc3qRJoaGuewKn5FNW4LSqwPFJZVEItfhMfGT7RpZuSFXjTi12pQ==",
+      "dependencies": [
+        "@tanstack/query-core",
+        "react"
       ]
     },
     "@trysound/sax@0.2.0": {
@@ -669,6 +689,9 @@
     "jiti@1.21.6": {
       "integrity": "sha512-2yTgeWTWzMWkHu6Jp9NKgePDaYHbntiwvYuuJLbbN9vl7DC9DvXKOB2BC3ZZ92D3cvV/aflH0osDfwpHepQ53w=="
     },
+    "js-tokens@4.0.0": {
+      "integrity": "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="
+    },
     "lilconfig@2.1.0": {
       "integrity": "sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ=="
     },
@@ -683,6 +706,12 @@
     },
     "lodash.uniq@4.5.0": {
       "integrity": "sha512-xfBaXQd9ryd9dlSDvnvI0lvxfLJlYAZzXomUYzLKtUeOQvOP5piqAWuGtrhWeqaXK9hhoM/iyJc5AV+XfsX3HQ=="
+    },
+    "loose-envify@1.4.0": {
+      "integrity": "sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==",
+      "dependencies": [
+        "js-tokens"
+      ]
     },
     "lru-cache@10.4.3": {
       "integrity": "sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ=="
@@ -1048,6 +1077,12 @@
     "queue-microtask@1.2.3": {
       "integrity": "sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A=="
     },
+    "react@18.3.1": {
+      "integrity": "sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==",
+      "dependencies": [
+        "loose-envify"
+      ]
+    },
     "read-cache@1.0.0": {
       "integrity": "sha512-Owdv/Ft7IjOgm/i0xvNDZ1LrRANRfew4b2prF3OWMQLxLfu3bS8FVhCsrSCMK4lR56Y9ya+AThoTpDCTxCmpRA==",
       "dependencies": [
@@ -1245,6 +1280,7 @@
       "jsr:@fresh/core@^2.0.0-alpha.25",
       "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
       "npm:@preact/signals@^1.3.0",
+      "npm:@tanstack/react-query@^5.61.0",
       "npm:lucide-preact@0.456",
       "npm:preact@^10.24.3",
       "npm:tailwindcss@3.4.3"
